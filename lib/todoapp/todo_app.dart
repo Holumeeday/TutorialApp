@@ -1,6 +1,7 @@
-import 'package:basicpractices/todoapp/tasklist.dart';
-import 'package:basicpractices/todoapp/total_taskscore.dart';
 import 'package:flutter/material.dart';
+
+import 'model/task_model.dart';
+import 'widgets/task_list.dart';
 
 class TodoApp extends StatefulWidget {
   const TodoApp({super.key});
@@ -11,42 +12,59 @@ class TodoApp extends StatefulWidget {
 
 class _TodoAppState extends State<TodoApp> {
   bool showTasks = true;
+  late Future<List<Task>> futureTask;
+  List<Task> tasks=[];
 
-  // Task list
-  List<Map<String, dynamic>> tasks = [
-    {"title": "Learn Flutter", "count": 0, "isDone": false},
-    {"title": "Do Assignment", "count": 0, "isDone": false},
-    {"title": "Follow up with Godwin", "count": 0, "isDone": false},
-    {"title": "Cook my meal", "count": 0, "isDone": false},
-    {"title": "Set up meeting", "count": 0, "isDone": false},
-    {"title": "See Flutter tutorial", "count": 0, "isDone": false},
-    {"title": "Test my application", "count": 0, "isDone": false},
-    {"title": "Asses my work", "count": 0, "isDone": false},
-  ];
+  @override
+  void initState() {
+    super.initState();
+    futureTask = loadTask();
+    
+  }
 
-  void addTask() {
-    setState(() {
-      tasks.add({"title": "New Task ${tasks.length + 1}", "count": 0});
-    });
+  Future<List<Task>> loadTask() async{
+    await Future.delayed(const Duration(seconds: 4));
+
+    return [
+      Task(title: "Learn Flutter"),
+      Task(title: "Do Assignment"),
+      Task(title: "Follow up with Godwin"),
+      Task(title: "Cook my meal"),
+      Task(title: "Set up meeting"),
+      Task(title: "See Flutter tutorial"),
+      Task(title: "Test my application"),
+      Task(title: "Asses my work"),
+    ];
+  }
+
+
+  void addTask() async{
+    final newTask = await Navigator.pushNamed(context, '/add');
+
+    if (newTask != null && newTask is Task){
+      setState(() {
+        tasks.add(newTask);
+      });
+    }
   }
 
   void increment(int index) {
     setState(() {
-      tasks[index]["count"]++;
+      tasks[index].count++;
     });
   }
 
   void decrement(int index) {
     setState(() {
-      if (tasks[index]["count"] > 0) {
-        tasks[index]["count"]--;
+      if (tasks[index].count > 0) {
+        tasks[index].count--;
       }
     });
   }
 
   void toggleDone(int index) {
     setState(() {
-      tasks[index]["isDone"] = !tasks[index]["isDone"];
+      tasks[index].isDone = !tasks[index].isDone;
     });
   }
 
@@ -54,58 +72,82 @@ class _TodoAppState extends State<TodoApp> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 25),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'To-Do',
-                  style: TextStyle(
-                    fontSize: 23,
+  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 25),
+  child: Column(
+    children: [
+      // ✅ Header row always visible
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Text(
+            'To-Do',
+            style: TextStyle(fontSize: 23),
+          ),
+          Row(
+            children: [
+              const SizedBox(
+                width: 40,
+                child: CircleAvatar(
+                  radius: 50,
+                  child: Text(
+                    "AO",
+                    style: TextStyle(
+                      fontSize: 19,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.deepPurpleAccent,
+                    ),
                   ),
                 ),
-                Row(
-                  children: [
-                    SizedBox(
-                      width: 40,
-                      child: CircleAvatar(
-                          radius: 50,
-                          child: Text(
-                            "AO",
-                            style: TextStyle(
-                                fontSize: 19,
-                                fontWeight: FontWeight.w800,
-                                color: Colors.deepPurpleAccent),
-                          )),
-                    ),
-                    Switch(
-                      value: showTasks,
-                      onChanged: (value) {
-                        setState(() {
-                          showTasks = value;
-                        });
-                      },
-                    ),
-                  ],
-                )
-              ],
-            ),
-            showTasks
-                ? TaskList(
-                    onToggle: toggleDone,
-                    tasks: tasks,
-                    onIncrement: increment,
-                    onDecrement: decrement)
-                : Total_taskscore(tasks: tasks),
-          ],
+              ),
+              Switch(
+                value: showTasks,
+                onChanged: (value) {
+                  setState(() {
+                    showTasks = value;
+                  });
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
+
+      const SizedBox(height: 20),
+
+      // ✅ Only this part waits for async data
+      Expanded(
+        child: FutureBuilder<List<Task>>(
+          future: futureTask,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return Center(child: Text("Error: ${snapshot.error}"));
+            } else {
+              if (tasks.isEmpty) {
+                tasks = snapshot.data!;
+              }
+
+              return 
+              TaskList(
+                tasks: tasks, 
+                onIncrement: increment, 
+                onDecrement: decrement, 
+                onToggleDone: toggleDone
+                );
+            }
+          },
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: addTask,
-        child: const Icon(Icons.add),
-      ),
+    ],
+  ),
+),
+floatingActionButton: FloatingActionButton(
+  onPressed: addTask,
+  child: const Icon(Icons.add),
+),
+
     );
-  }
+     
+}
 }
