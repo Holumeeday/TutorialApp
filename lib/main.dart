@@ -1,5 +1,6 @@
 import 'package:basicpractices/homepage.dart';
 import 'package:basicpractices/nullsafety.dart';
+import 'package:basicpractices/store/view/productlist_screen.dart';
 import 'package:basicpractices/todoapp/todo_app.dart';
 import 'package:basicpractices/todoapp/view/add_task_screen.dart';
 import 'package:basicpractices/todoapp/view/task_details_screen.dart';
@@ -24,7 +25,7 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: "/",
       routes: {
-        '/': (context) => const TodoApp(),
+        '/': (context) => const ProductlistScreen(),
         '/add': (context) => const AddTaskScreen(),
         '/detail': (context) => const TaskDetailsScreen(),
       },
