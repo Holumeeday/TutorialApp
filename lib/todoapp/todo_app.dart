@@ -114,7 +114,7 @@ class _TodoAppState extends State<TodoApp> {
 
       const SizedBox(height: 20),
 
-      // ✅ Only this part waits for async data
+      // 
       Expanded(
         child: FutureBuilder<List<Task>>(
           future: futureTask,
